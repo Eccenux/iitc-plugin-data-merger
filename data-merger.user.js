@@ -22,6 +22,26 @@ if(typeof window.plugin !== 'function') window.plugin = function() {};
 
 
 //PLUGIN START ////////////////////////////////////////////////////////
+/**
+ * Mergers config (importers and exporters).
+ * 
+ * @todo allow extending this from other plugins...
+ */
+let mergers = {
+	'uniques' : {
+		'exportLabel' : 'Export uniques',
+		'import' : function() {
+
+		},
+		'export' : function() {
+
+		},
+	}
+}
+
+/**
+ * CSS.
+ */
 let pluginCss = `
 .ui-data-merger-dialog a {
 	display: block;
@@ -35,11 +55,37 @@ let pluginCss = `
 }
 `;
 
-function openOptions() {
+/**
+ * Build HTML for the menu.
+ */
+function buildMenu() {
 	let html = `
 		<a class="import" tabindex="0">Merge (import)</a>
-		<a class="export" tabindex="0">Export uniques</a>
 	`;
+	for (const key in mergers) {
+		if (!mergers.hasOwnProperty(key)) {
+			continue;
+		}
+		const merger = mergers[key];
+		html += `<a class="export" data-merger="${key}" tabindex="0">${merger.exportLabel}</a>`;
+	}
+
+	return html;
+}
+
+/**
+ * Export data using merger and show it.
+ * @param {String} mergerKey Key for merger.
+ */
+function exportData(mergerKey) {
+	alert(`Not implemented ${mergerKey}`);
+}
+
+/**
+ * Open menu/options dialog.
+ */
+function openOptions() {
+	let html = buildMenu();
 
 	let box = dialog({
 		html: html,
@@ -52,7 +98,7 @@ function openOptions() {
 		alert('Not implemented yet.');
 	});
 	$('.export', box).click(()=>{
-		alert('Not implemented');
+		exportData($this.prop('data-merger'));
 	});
 }
 
