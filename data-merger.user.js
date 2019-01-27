@@ -5,8 +5,10 @@
 // @category       Misc
 // @version        0.0.1
 // @description    [0.0.1] Allows to merge (sync) data across devices and even accounts. For now handles merging uniques (captures and visits).
+// @include        https://intel.ingress.com/*
 // @include        https://*.ingress.com/intel*
 // @include        http://*.ingress.com/intel*
+// @match          https://intel.ingress.com/*
 // @match          https://*.ingress.com/intel*
 // @match          http://*.ingress.com/intel*
 // @grant          none
@@ -20,10 +22,53 @@ if(typeof window.plugin !== 'function') window.plugin = function() {};
 
 
 //PLUGIN START ////////////////////////////////////////////////////////
+let pluginCss = `
+.ui-data-merger-dialog a {
+	display: block;
+	color: #ffce00;
+	border: 1px solid #ffce00;
+	padding: 3px 0;
+	margin: 10px auto;
+	width: 80%;
+	text-align: center;
+	background: rgba(8,48,78,.9);
+}
+`;
+
+function openOptions() {
+	let html = `
+		<a class="import" tabindex="0">Merge (import)</a>
+		<a class="export" tabindex="0">Export uniques</a>
+	`;
+
+	let box = dialog({
+		html: html,
+		id: 'plugin-data-merger-options',
+		dialogClass: 'ui-data-merger-dialog',
+		title: 'Merge Options'
+	});
+
+	$('.import', box).click(()=>{
+		alert('Not implemented yet.');
+	});
+	$('.export', box).click(()=>{
+		alert('Not implemented');
+	});
+}
 
 //PLUGIN SETUP //////////////////////////////////////////////////////////
 
 var setup = function() {
+	// css
+	var css = document.createElement("style");
+	css.type = "text/css";
+	css.innerHTML = pluginCss;
+	document.body.appendChild(css);
+
+	// add menu/options button
+	$('<a>Merge</a>').appendTo('#toolbox').click(()=>{
+		openOptions();
+	});
 };
 
 //PLUGIN END //////////////////////////////////////////////////////////
