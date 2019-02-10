@@ -171,6 +171,11 @@ let uniquesMerger = {
 	'key' : 'uniques',
 	'exportLabel' : 'Export uniques',
 
+	// import might actually require reload, but will show separate message for that
+	requiresReload : false,
+	// will merge with conflict resolution
+	replacesData : false,
+
 	/**
 	 * Imports data as was returned by the exporter.
 	 * 
