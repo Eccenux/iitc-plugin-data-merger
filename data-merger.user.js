@@ -199,6 +199,10 @@ let uniquesMerger = {
 		this.removeIdentical(mergerData, current);
 
 		// also remove data that will not modify anything
+		let counters = {
+			added : 0,
+			modified : 0,
+		}
 		this.removeByFunction(mergerData, current, (newItem, currentItem)=>{
 			//LOG({newItem, currentItem});
 			// replace new item with computed state
@@ -208,10 +212,12 @@ let uniquesMerger = {
 			if (JSON.stringify(newItem) === JSON.stringify(currentItem)) {
 				return true;
 			}
+			counters.modified++;
 			return false;
 		});
+		counters.added = Object.keys(mergerData).length - counters.modified;
 
-		LOG(mergerData);
+		LOG({counters, mergerData});
 
 		return;
 
@@ -290,7 +296,7 @@ function exportData(mergerKey) {
 	let exportString = JSON.stringify({
 		mergerKey : mergerKey,
 		mergerData : mergerData
-	}, null, "\t");
+	}, null, " ");
 
 	return [exportString, merger];
 }
