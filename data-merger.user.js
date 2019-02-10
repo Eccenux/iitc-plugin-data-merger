@@ -161,13 +161,13 @@ function buildMenu() {
 }
 
 /**
- * Export data using merger and show it.
+ * Export data using merger.
  * @param {String} mergerKey Key for merger.
  */
 function exportData(mergerKey) {
 	if (!(mergerKey in mergers)) {
 		alert(`Not implemented ${mergerKey}`);
-		return;
+		return false;
 	}
 	let merger = mergers[mergerKey];
 	let mergerData = merger.export();
@@ -176,7 +176,7 @@ function exportData(mergerKey) {
 		mergerData : mergerData
 	}, null, "\t");
 
-	openExport(exportString, merger);
+	return [exportString, merger];
 }
 
 /**
@@ -191,9 +191,6 @@ function openExport(exportString, merger) {
 		dialogClass: 'ui-data-merger-dialog',
 		title: merger.exportLabel
 	});
-
-	// enable re-export
-	$(`.export[data-merger="${merger.key}"]`).removeClass('running');
 
 	/*
 	$('.export-file', box).click(()=>{
@@ -222,8 +219,20 @@ function openOptions() {
 		LOG('export-click');
 		if (!this.classList.contains('running')) {
 			LOG('run (not running)');
+			// disable/indicate progress
 			this.classList.add('running');
-			exportData(this.getAttribute('data-merger'));
+			// run
+			// note that set timeout is used only to allow browsers to update DOM
+			// (at least on FF 65 class was not be applied when setTimeout was not used)
+			setTimeout(()=>{
+				const result = exportData(this.getAttribute('data-merger'));
+				if (result !== false) {
+					let [exportString, merger] = result;
+					openExport(exportString, merger);
+				}
+				// re-enable
+				this.classList.remove('running');
+			}, 100);
 		}
 	});
 }
