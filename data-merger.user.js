@@ -118,23 +118,30 @@ window.plugin.dataMerger.appendMerger = appendMerger;
 let uniquesMerger = {
 	'key' : 'uniques',
 	'exportLabel' : 'Export uniques',
+
 	/**
-	 * Imports a string as was returned by the exporter.
+	 * Imports data as was returned by the exporter.
 	 * 
-	 * Note, can return string when an import error occures
-	 * @param {string} dataString 
+	 * Note, can return string when an import error occures.
+	 * 
+	 * @param {object} mergerData 
 	 */
-	'import' : function(dataString) {
+	'import' : function(mergerData) {
+		if (typeof mergerData !== 'object') {
+			LOGwarn('mergerData is not a proper object, used old export?');
+			return 'invalid';
+		}
+		
 		return 'Test';
 		localStorage['plugin-uniques-data']=dataString;
 		window.plugin.uniques.loadLocal('plugin-uniques-data');
 		location.reload();
 	},
 	/**
-	 * Returns a string that can be imported.
+	 * Returns data that can be imported.
 	 */
 	'export' : function() {
-		return localStorage["plugin-uniques-data"];
+		return JSON.parse(localStorage["plugin-uniques-data"]);
 	},
 };
 // append
