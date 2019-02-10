@@ -3,8 +3,8 @@
 // @namespace      https://github.com/jonatkins/ingress-intel-total-conversion
 // @name           IITC plugin: Uniques merger (data sync)
 // @category       Misc
-// @version        0.1.4
-// @description    [0.1.4] Allows to merge (sync) data across devices and even accounts. For now handles merging uniques (captures and visits).
+// @version        0.1.5
+// @description    [0.1.5] Allows to merge (sync) data across devices and even accounts. For now handles merging uniques (captures and visits).
 // @include        https://intel.ingress.com/*
 // @include        https://*.ingress.com/intel*
 // @include        http://*.ingress.com/intel*
@@ -218,6 +218,14 @@ let uniquesMerger = {
 		counters.added = Object.keys(mergerData).length - counters.modified;
 
 		LOG({counters, mergerData});
+
+		dialog({
+			title: 'Uniques import successful',
+			html: `
+				<p>Portals added: ${counters.added}.
+				<p>Portals modified: ${counters.modified}.
+			`,
+		});
 
 		return;
 
