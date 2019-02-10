@@ -92,18 +92,19 @@ class Merger {
 	}
 
 	/**
-	 * Helper function to remove data that is identical.
+	 * Remove data that is e.g. similar in both objects.
 	 * 
 	 * Note. This works best for flat data (were one key is one item).
 	 * So things like uniqes should be fine, bookmarks might not work as well.
 	 * 
 	 * @param {object} mergerData New (remote) data. Note! The object will be modified.
 	 * @param {object} current Current (local) data.
+	 * @param {function} shouldRemove Compares (newItem, currentItem) and returns true if newItem should be removed.
 	 */
-	removeIdentical(mergerData, current) {
+	removeByFunction(mergerData, current, shouldRemove) {
 		// remove data same in both
 		const start = performance.now();
-		LOG('remove data same in both');
+		LOG('remove data');
 		for (const key in mergerData) {
 			if (!current.hasOwnProperty(key)) {
 				continue;
@@ -114,15 +115,32 @@ class Merger {
 			const newItem = mergerData[key];
 			const currentItem = current[key];
 			// remove identical
-			if (JSON.stringify(newItem) === JSON.stringify(currentItem)) {
+			if (shouldRemove(newItem, currentItem)) {
 				delete mergerData[key];
 			}
 		}
 		LOG('done', 
-			'; total portals: ', Object.keys(window.plugin.uniques.uniques).length,
-			'; portals left to change: ', Object.keys(mergerData).length,
+			'; total items: ', Object.keys(current).length,
+			'; items left to merge: ', Object.keys(mergerData).length,
 			'; time[ms]: ', (performance.now() - start)
 		);
+	}
+	/**
+	 * Remove data that is identical in both objects.
+	 * 
+	 * Note. This works best for flat data (were one key is one item).
+	 * So things like uniqes should be fine, bookmarks might not work as well.
+	 * 
+	 * @param {object} mergerData New (remote) data. Note! The object will be modified.
+	 * @param {object} current Current (local) data.
+	 */
+	removeIdentical(mergerData, current) {
+		this.removeByFunction(mergerData, current, (newItem, currentItem)=>{
+			if (JSON.stringify(newItem) === JSON.stringify(currentItem)) {
+				return true;
+			}
+			return false;
+		});
 	}
 }
 
