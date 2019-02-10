@@ -3,8 +3,8 @@
 // @namespace      https://github.com/jonatkins/ingress-intel-total-conversion
 // @name           IITC plugin: Uniques merger (data sync)
 // @category       Misc
-// @version        0.0.6
-// @description    [0.0.6] Allows to merge (sync) data across devices and even accounts. For now handles merging uniques (captures and visits).
+// @version        0.0.7
+// @description    [0.0.7] Allows to merge (sync) data across devices and even accounts. For now handles merging uniques (captures and visits).
 // @include        https://intel.ingress.com/*
 // @include        https://*.ingress.com/intel*
 // @include        http://*.ingress.com/intel*
@@ -64,6 +64,22 @@ class Merger {
 		 * @type {function}
 		 */
 		this.export = merger.export;
+
+		// optional
+		/**
+		 * Set to false to indicate importer requires reload.
+		 * 
+		 * Note! You must reload the page yourself. This just shows a warning.
+		 * 
+		 * @type {boolean}
+		 */
+		this.requiresReload = typeof merger.requiresReload == 'boolean' ? merger.requiresReload : true;
+		/**
+		 * Set to false to indicate importer will replace (not merge) data.
+		 * 
+		 * @type {boolean}
+		 */
+		this.replacesData = typeof merger.replacesData == 'boolean' ? merger.replacesData : true;
 	}
 
 	static isValid(merger) {
@@ -186,9 +202,11 @@ function exportData(mergerKey) {
 
 /**
  * Import data using merger.
- * @param {String} exportString Exported data (must contain data from `exportData`).
+ * 
+ * @param {string} exportString Exported data (must contain data from `exportData`).
+ * @returns {(string|boolean)} String upon immediate error or true when merger was found.
  */
-function importData(exportString) {
+function importData(exportString, onFinished) {
 	// parse and validate
 	let data = {};
 	try {
@@ -208,7 +226,15 @@ function importData(exportString) {
 	}
 
 	let merger = mergers[mergerKey];
-	return merger.import(mergerData);
+	confirmImport(merger, ()=>{
+		const result = merger.import(mergerData);
+		showImportMessages(result, merger);
+		if (typeof onFinished === 'function') {
+			onFinished(result, merger);
+		}
+	});
+
+	return true;
 }
 
 /**
@@ -266,34 +292,7 @@ function openImport() {
 					return;
 				}
 				const result = importData(textarea.value);
-				if (typeof result === 'string') {
-					switch (result) {
-						case 'invalid':
-							alert(`Error!
-
-								The data you try to import is invalid.
-								Please try to paste again or to export again.
-
-								When you copy export, make sure to copy the whole thing.
-							`.replace(/\n\t+/g, '\n'));
-						break;
-						case 'missing merger':
-							alert(`Error!
-
-								Merger does not exists. You seem to be missing some plugin.
-
-								Make sure you have the same plugins on both devices.
-							`.replace(/\n\t+/g, '\n'));
-						break;
-						// other? => assume merger.import() returned some own error
-						default:
-							alert(`Import error!
-
-								${result}
-							`.replace(/\n\t+/g, '\n'));
-						break;
-					}
-				}
+				showImportMessages(result);
 			},
 			'Cancel' : function() {
 				LOG('import Cancel', 'this: ', this);
@@ -303,6 +302,46 @@ function openImport() {
 	});
 	removeOkButton(box);
 	//LOG(box);
+}
+
+function showImportMessages(result) {
+	if (typeof result === 'string') {
+		switch (result) {
+			case 'invalid':
+				alert(`Error!
+
+					The data you try to import is invalid.
+					Please try to paste again or to export again.
+
+					When you copy export, make sure to copy the whole thing.
+				`.replace(/\n\t+/g, '\n'));
+			break;
+			case 'missing merger':
+				alert(`Error!
+
+					Merger does not exists. You seem to be missing some plugin.
+
+					Make sure you have the same plugins on both devices.
+				`.replace(/\n\t+/g, '\n'));
+			break;
+			// other? => assume merger.import() returned some own error
+			default:
+				alert(`Import error!
+
+					${result}
+				`.replace(/\n\t+/g, '\n'));
+			break;
+		}
+	}
+}
+
+/**
+ * Confirmation dialog (depeneds on merger options).
+ * @param {Merger} merger
+ * @param {function} onOk 
+ */
+function confirmImport(merger, onOk) {
+	onOk();
 }
 
 /**
