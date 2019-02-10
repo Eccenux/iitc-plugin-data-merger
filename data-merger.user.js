@@ -3,8 +3,8 @@
 // @namespace      https://github.com/jonatkins/ingress-intel-total-conversion
 // @name           IITC plugin: Uniques merger (data sync)
 // @category       Misc
-// @version        0.1.1
-// @description    [0.1.1] Allows to merge (sync) data across devices and even accounts. For now handles merging uniques (captures and visits).
+// @version        0.1.2
+// @description    [0.1.2] Allows to merge (sync) data across devices and even accounts. For now handles merging uniques (captures and visits).
 // @include        https://intel.ingress.com/*
 // @include        https://*.ingress.com/intel*
 // @include        http://*.ingress.com/intel*
@@ -131,7 +131,31 @@ let uniquesMerger = {
 			LOGwarn('mergerData is not a proper object, used old export?');
 			return 'invalid';
 		}
-		
+
+		const current = JSON.parse(localStorage['plugin-uniques-data']);
+
+		// remove data same in both
+		const start = performance.now();
+		LOG('remove data same in both');
+		for (const key in mergerData) {
+			if (!current.hasOwnProperty(key)) {
+				continue;
+			}
+			if (!mergerData.hasOwnProperty(key)) {
+				continue;
+			}
+			const newItem = mergerData[key];
+			const currentItem = current[key];
+			// remove identical
+			if (JSON.stringify(newItem) === JSON.stringify(currentItem)) {
+				delete mergerData[key];
+			}
+		}
+		LOG('done', 
+			'; total portals: ', Object.keys(window.plugin.uniques.uniques).length,
+			'; portals left to change: ', Object.keys(mergerData).length,
+			'; time[ms]: ', (performance.now() - start)
+		);
 		return 'Test';
 		localStorage['plugin-uniques-data']=dataString;
 		window.plugin.uniques.loadLocal('plugin-uniques-data');
