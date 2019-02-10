@@ -217,21 +217,37 @@ let uniquesMerger = {
 		});
 		counters.added = Object.keys(mergerData).length - counters.modified;
 
-		LOG({counters, mergerData});
+		//LOG({counters, mergerData});
 
-		dialog({
+		// add or replace all data into current
+		$.extend(current, mergerData);
+
+		// save with confirmation
+		let box = dialog({
+			dialogClass: 'ui-data-merger-dialog',
 			title: 'Uniques import successful',
 			html: `
-				<p>Portals added: ${counters.added}.
-				<p>Portals modified: ${counters.modified}.
+				<p>Portals to add: ${counters.added}.
+				<p>Portals to modify: ${counters.modified}.
 			`,
+			buttons: {
+				'Save & reload' : function() {
+					// auto-backup
+					localStorage['plugin-uniques-data-auto-backup'] = localStorage['plugin-uniques-data'];
+					// save
+					var dataString = JSON.stringify(current)
+					localStorage['plugin-uniques-data'] = dataString; // this replaces data
+					window.plugin.uniques.loadLocal('plugin-uniques-data'); // this loads data to internal objects
+					// reload
+					location.reload();	// this reloads the page (to e.g. update highlights)
+				},
+				'Cancel' : function() {
+					LOG('import Cancel');
+					$(this).dialog('close');
+				},
+			}
 		});
-
-		return;
-
-		localStorage['plugin-uniques-data']=dataString;
-		window.plugin.uniques.loadLocal('plugin-uniques-data');
-		location.reload();
+		removeOkButton(box);
 	},
 	/**
 	 * Returns data that can be imported.
