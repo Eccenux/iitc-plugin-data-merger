@@ -53,11 +53,17 @@ function LOGwarn() {
 let mergers = {
 	'uniques' : {
 		'exportLabel' : 'Export uniques',
-		'import' : function() {
 
+		// imports a string as was returned by the exporter
+		'import' : function(dataString) {
+			localStorage['plugin-uniques-data']=dataString;
+			window.plugin.uniques.loadLocal('plugin-uniques-data');
+			location.reload();
 		},
-		'export' : function() {
 
+		// returns a string that can be exported
+		'export' : function() {
+			return localStorage["plugin-uniques-data"];
 		},
 	}
 }
