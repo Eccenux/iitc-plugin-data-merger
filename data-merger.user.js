@@ -107,7 +107,18 @@ function buildMenu() {
  * @param {String} mergerKey Key for merger.
  */
 function exportData(mergerKey) {
-	alert(`Not implemented ${mergerKey}`);
+	if (!(mergerKey in mergers)) {
+		alert(`Not implemented ${mergerKey}`);
+		return;
+	}
+	let merger = mergers[mergerKey];
+	let mergerData = merger.export();
+	let exportString = JSON.stringify({
+		mergerKey : mergerKey,
+		mergerData : mergerData
+	}, null, "\t");
+
+	alert(exportString);
 }
 
 /**
