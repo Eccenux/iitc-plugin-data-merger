@@ -186,12 +186,34 @@ let uniquesMerger = {
 
 		const current = JSON.parse(localStorage['plugin-uniques-data']);
 
+		function computeState(newItem, currentItem) {
+			let item = {};
+			item.captured = (newItem.captured || currentItem.captured);
+			item.visited = (newItem.visited || currentItem.visited);
+			if (item.captured) {
+				item.visited = true;
+			}
+			return item;
+		}
+
 		// remove data same in both
 		this.removeIdentical(mergerData, current);
 
+		// also remove data that will not modify anything
+		this.removeByFunction(mergerData, current, (newItem, currentItem)=>{
+			// replace new item with computed state
+			newItem = computeState(newItem, currentItem);
+			// check
+			if (JSON.stringify(newItem) === JSON.stringify(currentItem)) {
+				return true;
+			}
+			return false;
+		});
+
 		LOG(mergerData);
 
-		return 'Test';
+		return;
+
 		localStorage['plugin-uniques-data']=dataString;
 		window.plugin.uniques.loadLocal('plugin-uniques-data');
 		location.reload();
