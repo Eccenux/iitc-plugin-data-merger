@@ -120,8 +120,8 @@ function openOptions() {
 	$('.import', box).click(()=>{
 		alert('Not implemented yet.');
 	});
-	$('.export', box).click(()=>{
-		exportData($this.prop('data-merger'));
+	$('.export', box).click(function(){
+		exportData(this.getAttribute('data-merger'));
 	});
 }
 
