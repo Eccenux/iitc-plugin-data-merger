@@ -3,8 +3,8 @@
 // @namespace      https://github.com/jonatkins/ingress-intel-total-conversion
 // @name           IITC plugin: Uniques merger (data sync)
 // @category       Misc
-// @version        0.0.1
-// @description    [0.0.1] Allows to merge (sync) data across devices and even accounts. For now handles merging uniques (captures and visits).
+// @version        0.0.2
+// @description    [0.0.2] Allows to merge (sync) data across devices and even accounts. For now handles merging uniques (captures and visits).
 // @include        https://intel.ingress.com/*
 // @include        https://*.ingress.com/intel*
 // @include        http://*.ingress.com/intel*
@@ -16,16 +16,39 @@
 // @downloadURL    https://github.com/Eccenux/iitc-plugin-data-merger/raw/master/data-merger.user.js
 // ==/UserScript==
 
+// GM_info only available in top context
+//console.log('[data-merger] ', 'GM_info.script: ', GM_info.script);
+
 function wrapper(plugin_info) {
 // ensure plugin framework is there, even if iitc is not yet loaded
 if(typeof window.plugin !== 'function') window.plugin = function() {};
 
+// plugin_info.version and .name available
+//console.log('[data-merger] ', 'plugin_info: ', plugin_info);
+
+const myVersion = (typeof plugin_info.script == 'object') ? plugin_info.script.version : '0';
+
+/**
+ * Very simple logger.
+ */
+function LOG() {
+	var args = Array.prototype.slice.call(arguments); // Make real array from arguments
+	args.unshift("[data-merger] ");
+	console.log.apply(console, args);
+}
+function LOGwarn() {
+	var args = Array.prototype.slice.call(arguments); // Make real array from arguments
+	args.unshift("[data-merger] ");
+	console.warn.apply(console, args);
+}
 
 //PLUGIN START ////////////////////////////////////////////////////////
 /**
  * Mergers config (importers and exporters).
  * 
- * @todo allow extending this from other plugins...
+ * @todo allow extending this from other plugins... 
+ * 	plugin.appendMerger(key, label, import, export)? or 
+ * 	plugin.appendMerger(key, merger) with Merger class?
  */
 let mergers = {
 	'uniques' : {
@@ -91,7 +114,7 @@ function openOptions() {
 		html: html,
 		id: 'plugin-data-merger-options',
 		dialogClass: 'ui-data-merger-dialog',
-		title: 'Merge Options'
+		title: `Merge Options (v. ${myVersion})`
 	});
 
 	$('.import', box).click(()=>{
