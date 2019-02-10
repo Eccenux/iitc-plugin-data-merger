@@ -3,8 +3,8 @@
 // @namespace      https://github.com/jonatkins/ingress-intel-total-conversion
 // @name           IITC plugin: Uniques merger (data sync)
 // @category       Misc
-// @version        0.0.4
-// @description    [0.0.4] Allows to merge (sync) data across devices and even accounts. For now handles merging uniques (captures and visits).
+// @version        0.0.5
+// @description    [0.0.5] Allows to merge (sync) data across devices and even accounts. For now handles merging uniques (captures and visits).
 // @include        https://intel.ingress.com/*
 // @include        https://*.ingress.com/intel*
 // @include        http://*.ingress.com/intel*
@@ -125,6 +125,9 @@ let pluginCss = `
 	height: 10em;
 	box-sizing: border-box;
 }
+.ui-data-merger-dialog .ui-dialog-buttonset button {
+	margin-left: 1em;
+}
 .ui-data-merger-dialog a {
 	box-sizing: border-box;
 	display: block;
@@ -180,7 +183,7 @@ function exportData(mergerKey) {
 }
 
 /**
- * Open menu/options dialog.
+ * Open export dialog.
  */
 function openExport(exportString, merger) {
 	let html = `<textarea>${exportString}</textarea>`;
@@ -200,6 +203,44 @@ function openExport(exportString, merger) {
 }
 
 /**
+ * 
+ * @param {jQuery} box IITC dialog box (returned by dialog function).
+ */
+function removeOkButton(box) {
+	// note `box` is actually content of the dialog, not the whole dialog
+	$('.ui-dialog-buttonset button', box.parent()).each(function() {
+		if (this.textContent === 'OK') {
+			this.style.display = 'none';
+		}
+	});
+}
+
+/**
+ * Open import dialog.
+ */
+function openImport() {
+	let html = `<textarea></textarea>`;
+	
+	let box = dialog({
+		html: html,
+		id: 'plugin-data-merger-import',
+		dialogClass: 'ui-data-merger-dialog',
+		title: 'Import (merge)',
+		buttons: {
+			'Merge' : function() {
+				LOG('import Merge', 'this: ', this);
+			},
+			'Cancel' : function() {
+				LOG('import Cancel', 'this: ', this);
+				$(this).dialog('close');
+			},
+		}
+	});
+	removeOkButton(box);
+	//LOG(box);
+}
+
+/**
  * Open menu/options dialog.
  */
 function openOptions() {
@@ -213,7 +254,7 @@ function openOptions() {
 	});
 
 	$('.import', box).click(()=>{
-		alert('Not implemented yet.');
+		openImport();
 	});
 	$('.export', box).click(function(){
 		LOG('export-click');
@@ -225,7 +266,8 @@ function openOptions() {
 			// note that set timeout is used only to allow browsers to update DOM
 			// (at least on FF 65 class was not be applied when setTimeout was not used)
 			setTimeout(()=>{
-				const result = exportData(this.getAttribute('data-merger'));
+				const mergerKey = this.getAttribute('data-merger');
+				const result = exportData(mergerKey);
 				if (result !== false) {
 					let [exportString, merger] = result;
 					openExport(exportString, merger);
