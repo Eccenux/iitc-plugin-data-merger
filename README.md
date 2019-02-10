@@ -10,7 +10,7 @@ See also: [my other IITC plugins](https://github.com/search?q=user%3AEccenux+iit
 Installation
 ------------
 
-Note! This beta (experimental) version. Might not be ready for use yet.
+Note! This is a beta version (still experimental). Might not be ready for use yet.
 
 Assuming you already have IITC just &rarr; **[install the script](https://github.com/Eccenux/iitc-plugin-data-merger/raw/master/data-merger.user.js)**.
 
