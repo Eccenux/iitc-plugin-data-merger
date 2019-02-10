@@ -3,8 +3,8 @@
 // @namespace      https://github.com/jonatkins/ingress-intel-total-conversion
 // @name           IITC plugin: Uniques merger (data sync)
 // @category       Misc
-// @version        0.0.2
-// @description    [0.0.2] Allows to merge (sync) data across devices and even accounts. For now handles merging uniques (captures and visits).
+// @version        0.0.3
+// @description    [0.0.3] Allows to merge (sync) data across devices and even accounts. For now handles merging uniques (captures and visits).
 // @include        https://intel.ingress.com/*
 // @include        https://*.ingress.com/intel*
 // @include        http://*.ingress.com/intel*
@@ -72,7 +72,13 @@ let mergers = {
  * CSS.
  */
 let pluginCss = `
+.ui-data-merger-dialog textarea {
+	width: 100%;
+	height: 10em;
+	box-sizing: border-box;
+}
 .ui-data-merger-dialog a {
+	box-sizing: border-box;
 	display: block;
 	color: #ffce00;
 	border: 1px solid #ffce00;
@@ -118,7 +124,27 @@ function exportData(mergerKey) {
 		mergerData : mergerData
 	}, null, "\t");
 
-	alert(exportString);
+	openExport(exportString, merger);
+}
+
+/**
+ * Open menu/options dialog.
+ */
+function openExport(exportString, merger) {
+	let html = `<textarea>${exportString}</textarea>`;
+	
+	let box = dialog({
+		html: html,
+		id: 'plugin-data-merger-export',
+		dialogClass: 'ui-data-merger-dialog',
+		title: merger.exportLabel
+	});
+
+	/*
+	$('.export-file', box).click(()=>{
+		alert('Not implemented yet.');
+	});
+	*/
 }
 
 /**
