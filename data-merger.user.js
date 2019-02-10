@@ -136,6 +136,10 @@ let pluginCss = `
 	text-align: center;
 	background: rgba(8,48,78,.9);
 }
+.ui-data-merger-dialog a.running {
+	color: grey;
+	border-color: grey;
+}
 `;
 
 /**
@@ -188,6 +192,9 @@ function openExport(exportString, merger) {
 		title: merger.exportLabel
 	});
 
+	// enable re-export
+	$(`.export[data-merger="${merger.key}"]`).removeClass('running');
+
 	/*
 	$('.export-file', box).click(()=>{
 		alert('Not implemented yet.');
@@ -212,7 +219,12 @@ function openOptions() {
 		alert('Not implemented yet.');
 	});
 	$('.export', box).click(function(){
-		exportData(this.getAttribute('data-merger'));
+		LOG('export-click');
+		if (!this.classList.contains('running')) {
+			LOG('run (not running)');
+			this.classList.add('running');
+			exportData(this.getAttribute('data-merger'));
+		}
 	});
 }
 
