@@ -3,8 +3,8 @@
 // @namespace      https://github.com/jonatkins/ingress-intel-total-conversion
 // @name           IITC plugin: Uniques merger (data sync)
 // @category       Misc
-// @version        0.1.3
-// @description    [0.1.3] Allows to merge (sync) data across devices and even accounts. For now handles merging uniques (captures and visits).
+// @version        0.1.4
+// @description    [0.1.4] Allows to merge (sync) data across devices and even accounts. For now handles merging uniques (captures and visits).
 // @include        https://intel.ingress.com/*
 // @include        https://*.ingress.com/intel*
 // @include        http://*.ingress.com/intel*
@@ -186,14 +186,13 @@ let uniquesMerger = {
 
 		const current = JSON.parse(localStorage['plugin-uniques-data']);
 
+		// Note! This assumes you will never want to un-capture something
 		function computeState(newItem, currentItem) {
-			let item = {};
-			item.captured = (newItem.captured || currentItem.captured);
-			item.visited = (newItem.visited || currentItem.visited);
-			if (item.captured) {
-				item.visited = true;
+			newItem.captured = (newItem.captured || currentItem.captured);
+			newItem.visited = (newItem.visited || currentItem.visited);
+			if (newItem.captured) {
+				newItem.visited = true;
 			}
-			return item;
 		}
 
 		// remove data same in both
@@ -201,9 +200,11 @@ let uniquesMerger = {
 
 		// also remove data that will not modify anything
 		this.removeByFunction(mergerData, current, (newItem, currentItem)=>{
+			//LOG({newItem, currentItem});
 			// replace new item with computed state
-			newItem = computeState(newItem, currentItem);
-			// check
+			computeState(newItem, currentItem);
+			//LOG('computed: ', {newItem, currentItem});
+			// check (note that this only works if order of keys is kept the same)
 			if (JSON.stringify(newItem) === JSON.stringify(currentItem)) {
 				return true;
 			}
