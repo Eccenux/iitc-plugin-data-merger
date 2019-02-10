@@ -104,7 +104,9 @@ appendMerger({
 	'exportLabel' : 'Export uniques',
 
 	// imports a string as was returned by the exporter
+	// note, can return string when an import error occures
 	'import' : function(dataString) {
+		return 'Not ready';
 		localStorage['plugin-uniques-data']=dataString;
 		window.plugin.uniques.loadLocal('plugin-uniques-data');
 		location.reload();
@@ -183,6 +185,33 @@ function exportData(mergerKey) {
 }
 
 /**
+ * Import data using merger.
+ * @param {String} exportString Exported data (must contain data from `exportData`).
+ */
+function importData(exportString) {
+	// parse and validate
+	let data = {};
+	try {
+		data = JSON.parse(exportString);
+	} catch (error) {
+		LOGwarn(error);
+		data = {};
+	}
+	LOG(data);
+	if (!('mergerKey' in data) || !('mergerData' in data)) {
+		return 'invalid';
+	}
+	let {mergerKey, mergerData} = data;
+	// has merger?
+	if (!(mergerKey in mergers)) {
+		return 'missing merger';
+	}
+
+	let merger = mergers[mergerKey];
+	return merger.import(mergerData);
+}
+
+/**
  * Open export dialog.
  */
 function openExport(exportString, merger) {
@@ -229,6 +258,40 @@ function openImport() {
 		buttons: {
 			'Merge' : function() {
 				LOG('import Merge', 'this: ', this);
+				const textarea = this.querSelector('textarea');
+				if (!textarea.value.length) {
+					alert('Data is empty');
+					return;
+				}
+				const result = importData(textarea.value);
+				if (typeof result === 'string') {
+					switch (result) {
+						case 'invalid':
+							alert(`Error!
+
+								The data you try to import is invalid.
+								Please try to paste again or to export again.
+
+								When you copy export, make sure to copy the whole thing.
+							`.replace(/\n\t+/g, '\n'));
+						break;
+						case 'missing merger':
+							alert(`Error!
+
+								Merger does not exists. You seem to be missing some plugin.
+
+								Make sure you have the same plugins on both devices.
+							`.replace(/\n\t+/g, '\n'));
+						break;
+						// other? => assume merger.import() returned some own error
+						default:
+							alert(`Import error!
+
+								${result}
+							`.replace(/\n\t+/g, '\n'));
+						break;
+					}
+				}
 			},
 			'Cancel' : function() {
 				LOG('import Cancel', 'this: ', this);
