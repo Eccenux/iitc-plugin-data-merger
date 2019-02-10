@@ -3,8 +3,8 @@
 // @namespace      https://github.com/jonatkins/ingress-intel-total-conversion
 // @name           IITC plugin: Uniques merger (data sync)
 // @category       Misc
-// @version        0.1.0
-// @description    [0.1.0] Allows to merge (sync) data across devices and even accounts. For now handles merging uniques (captures and visits).
+// @version        0.1.1
+// @description    [0.1.1] Allows to merge (sync) data across devices and even accounts. For now handles merging uniques (captures and visits).
 // @include        https://intel.ingress.com/*
 // @include        https://*.ingress.com/intel*
 // @include        http://*.ingress.com/intel*
@@ -115,23 +115,30 @@ window.plugin.dataMerger.appendMerger = appendMerger;
 /**
  * Uniques merger.
  */
-appendMerger({
+let uniquesMerger = {
 	'key' : 'uniques',
 	'exportLabel' : 'Export uniques',
-
-	// imports a string as was returned by the exporter
-	// note, can return string when an import error occures
+	/**
+	 * Imports a string as was returned by the exporter.
+	 * 
+	 * Note, can return string when an import error occures
+	 * @param {string} dataString 
+	 */
 	'import' : function(dataString) {
+		return 'Test';
 		localStorage['plugin-uniques-data']=dataString;
 		window.plugin.uniques.loadLocal('plugin-uniques-data');
 		location.reload();
 	},
-
-	// returns a string that can be exported
+	/**
+	 * Returns a string that can be imported.
+	 */
 	'export' : function() {
 		return localStorage["plugin-uniques-data"];
 	},
-});
+};
+// append
+appendMerger(uniquesMerger);
 
 /**
  * CSS.
@@ -390,7 +397,7 @@ function openOptions() {
 		html: html,
 		id: 'plugin-data-merger-options',
 		dialogClass: 'ui-data-merger-dialog',
-		title: `Merge Options (v. ${myVersion})`
+		title: `Merge menu (v. ${myVersion})`
 	});
 
 	$('.import', box).click(()=>{
