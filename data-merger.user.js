@@ -215,7 +215,7 @@ function importData(exportString, onFinished) {
 		LOGwarn(error);
 		data = {};
 	}
-	LOG(data);
+	//LOG(data);
 	if (!('mergerKey' in data) || !('mergerData' in data)) {
 		return 'invalid';
 	}
@@ -285,7 +285,7 @@ function openImport() {
 		title: 'Import (merge)',
 		buttons: {
 			'Merge' : function() {
-				LOG('import Merge', 'this: ', this);
+				LOG('import Merge');
 				const textarea = this.querySelector('textarea');
 				if (!textarea || !textarea.value.length) {
 					alert('Data is empty');
@@ -295,7 +295,7 @@ function openImport() {
 				showImportMessages(result);
 			},
 			'Cancel' : function() {
-				LOG('import Cancel', 'this: ', this);
+				LOG('import Cancel');
 				$(this).dialog('close');
 			},
 		}
@@ -341,7 +341,44 @@ function showImportMessages(result) {
  * @param {function} onOk 
  */
 function confirmImport(merger, onOk) {
-	onOk();
+	// check if confirmations are required
+	if (!merger.requiresReload && !merger.replacesData) {
+		onOk();
+		return;
+	}
+
+	// build message
+	let messages = '';
+	if (merger.requiresReload) {
+		messages += '<li>Requires page reload.';
+	}
+	if (merger.replacesData) {
+		messages += '<li>Will replace (not merge) data. This might cause some data loss.'
+			+ '<br>Remember to backup your data first (e.g. export and save somewhere).'
+		;
+	}
+
+	// show dialog
+	let box = dialog({
+		html: `<strong>Warning!</strong> This import:
+				<ul>${messages}</ul>
+				<p>Are you sure wish to import? 
+		`,
+		id: 'plugin-data-merger-confirm',
+		dialogClass: 'ui-data-merger-dialog',
+		title: 'Confirm import',
+		buttons: {
+			'OK' : function() {
+				LOG('confirmImport - OK');
+				onOk();
+				$(this).dialog('close');
+			},
+			'Cancel' : function() {
+				LOG('confirmImport - Cancel');
+				$(this).dialog('close');
+			},
+		}
+	});
 }
 
 /**
