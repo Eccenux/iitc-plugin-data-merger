@@ -3,8 +3,8 @@
 // @namespace      https://github.com/jonatkins/ingress-intel-total-conversion
 // @name           IITC plugin: Uniques merger (data sync)
 // @category       Misc
-// @version        0.0.3
-// @description    [0.0.3] Allows to merge (sync) data across devices and even accounts. For now handles merging uniques (captures and visits).
+// @version        0.0.4
+// @description    [0.0.4] Allows to merge (sync) data across devices and even accounts. For now handles merging uniques (captures and visits).
 // @include        https://intel.ingress.com/*
 // @include        https://*.ingress.com/intel*
 // @include        http://*.ingress.com/intel*
@@ -23,10 +23,11 @@ function wrapper(plugin_info) {
 // ensure plugin framework is there, even if iitc is not yet loaded
 if(typeof window.plugin !== 'function') window.plugin = function() {};
 
-// plugin_info.version and .name available
-//console.log('[data-merger] ', 'plugin_info: ', plugin_info);
-
+//PLUGIN START ////////////////////////////////////////////////////////
 const myVersion = (typeof plugin_info.script == 'object') ? plugin_info.script.version : '0';
+
+// namespace
+window.plugin.dataMerger = function() {};
 
 /**
  * Very simple logger.
@@ -42,31 +43,78 @@ function LOGwarn() {
 	console.warn.apply(console, args);
 }
 
-//PLUGIN START ////////////////////////////////////////////////////////
 /**
- * Mergers config (importers and exporters).
- * 
- * @todo allow extending this from other plugins... 
- * 	plugin.appendMerger(key, label, import, export)? or 
- * 	plugin.appendMerger(key, merger) with Merger class?
+ * Merger class
  */
-let mergers = {
-	'uniques' : {
-		'exportLabel' : 'Export uniques',
+class Merger {
+	constructor (merger) {
+		/**
+		 * @type {string}
+		 */
+		this.key = merger.key;
+		/**
+		 * @type {string}
+		 */
+		this.exportLabel = merger.exportLabel;
+		/**
+		 * @type {function}
+		 */
+		this.import = merger.import;
+		/**
+		 * @type {function}
+		 */
+		this.export = merger.export;
+	}
 
-		// imports a string as was returned by the exporter
-		'import' : function(dataString) {
-			localStorage['plugin-uniques-data']=dataString;
-			window.plugin.uniques.loadLocal('plugin-uniques-data');
-			location.reload();
-		},
-
-		// returns a string that can be exported
-		'export' : function() {
-			return localStorage["plugin-uniques-data"];
-		},
+	static isValid(merger) {
+		return true
+			&& typeof merger.key == 'string'
+			&& typeof merger.exportLabel == 'string'
+			&& typeof merger.import == 'function'
+			&& typeof merger.export == 'function'
+		;
 	}
 }
+
+/**
+ * Mergers config (importers and exporters).
+ */
+let mergers = {};
+
+function appendMerger(mergerDefinition) {
+	if (!Merger.isValid(mergerDefinition)) {
+		LOGwarn('invalid merger definition', mergerDefinition);
+		return;
+	}
+	let merger = new Merger(mergerDefinition);
+	if (merger.key in mergers) {
+		LOGwarn('duplicate merger definition', `(key ${merger.key} already exists)`);
+		return;
+	}
+	mergers[merger.key] = merger;
+}
+// export
+window.plugin.dataMerger.appendMerger = appendMerger;
+
+/**
+ * Uniques merger.
+ */
+appendMerger({
+	'key' : 'uniques',
+	'exportLabel' : 'Export uniques',
+
+	// imports a string as was returned by the exporter
+	'import' : function(dataString) {
+		localStorage['plugin-uniques-data']=dataString;
+		window.plugin.uniques.loadLocal('plugin-uniques-data');
+		location.reload();
+	},
+
+	// returns a string that can be exported
+	'export' : function() {
+		return localStorage["plugin-uniques-data"];
+	},
+});
 
 /**
  * CSS.
