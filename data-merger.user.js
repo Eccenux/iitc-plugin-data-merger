@@ -3,8 +3,8 @@
 // @namespace      https://github.com/jonatkins/ingress-intel-total-conversion
 // @name           IITC plugin: Uniques merger (data sync)
 // @category       Misc
-// @version        0.2.1
-// @description    [0.2.1] Allows to merge (sync) data across devices and even accounts. For now handles merging uniques (captures and visits).
+// @version        0.2.2
+// @description    [0.2.2] Allows to merge (sync) data across devices and even accounts. For now handles merging uniques (captures and visits).
 // @include        https://intel.ingress.com/*
 // @include        https://*.ingress.com/intel*
 // @include        http://*.ingress.com/intel*
@@ -483,6 +483,20 @@ function saveAsFile(text, fileName) {
 }
 
 /**
+ * Load file selected by user.
+ * @param {Element} fileInput Input of type file.
+ * @param {Element} output Output (input with type text, textarea or similar).
+ */
+function loadTextFile(fileInput, output) {
+	var file = fileInput.files[0];
+	var fileReader = new FileReader();
+	fileReader.onload = function(e) {
+		output.value = e.target.result;
+	};
+	fileReader.readAsText(file, "UTF-8");
+}
+
+/**
  * 
  * @param {jQuery} box IITC dialog box (returned by dialog function).
  */
@@ -500,6 +514,7 @@ function removeOkButton(box) {
  */
 function openImport() {
 	let html = `
+		<input type="file" class="fileInput">
 		<textarea></textarea>
 		<label><input type="checkbox" class="forced-replace"> Forced replace of data (e.g. to restore backup)</label>
 	`;
@@ -530,6 +545,11 @@ function openImport() {
 	});
 	removeOkButton(box);
 	//LOG(box);
+
+	const output = $('textarea', box)[0];
+	$('.fileInput', box).change(function(){
+		loadTextFile(this, output);
+	});
 }
 
 /**
