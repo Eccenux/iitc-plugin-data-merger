@@ -1,4 +1,4 @@
-# IITC plugin: Uniques merger (sync)
+# IITC plugin: Data merger (sync replacement)
 
 Allows to merge (sync) data across devices and even accounts. For now handles merging uniques (captures and visits).
 
@@ -13,7 +13,24 @@ Note! This is a beta version (still experimental). Might not be ready for use ye
 
 Assuming you already have IITC just &rarr; **[install the script](https://github.com/Eccenux/iitc-plugin-data-merger/raw/master/data-merger.user.js)**.
 
+### Tampermonkey notes ###
+
 Note. When you open the user script URL the installation dialog should be shown by Tampermonkey. If it doesn't show then just try to refresh the page or re-visit the URL again.
+
+### IITC mobile notes ###
+
+1. Open **[install the script](https://github.com/Eccenux/iitc-plugin-data-merger/raw/master/data-merger.user.js)** link in your mobile Chrome.
+2. Open menu and click download ⭳.
+3. Open Total Commander ([install TC](https://play.google.com/store/apps/details?id=com.ghisler.android.TotalCommander) if you didn't already).
+4. Go to Home → Downloads. You should find `data-merger.user.js` there.
+5. Click on the file and you should be redirected to IITC.
+
+At the time of writing I'm using IITC Mobile version 0.26.0. So above should work at least in that version.
+
+Known problems
+--------------
+
+Saving and importing files doesn't work in mobile IITC :-(... Not sure why. It works fine in [FF mobile](https://play.google.com/store/apps/details?id=org.mozilla.firefox). If anyone have any ideas ho to fix it for IITC please let me know. 
 
 Technical notes
 ---------------
