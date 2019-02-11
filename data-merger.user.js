@@ -341,6 +341,7 @@ let pluginCss = `
 	width: 100%;
 	height: 10em;
 	box-sizing: border-box;
+	margin: 1em 0;
 }
 .ui-data-merger-dialog .ui-dialog-buttonset button {
 	margin-left: 1em;
