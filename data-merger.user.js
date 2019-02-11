@@ -3,8 +3,8 @@
 // @namespace      https://github.com/jonatkins/ingress-intel-total-conversion
 // @name           IITC plugin: Uniques merger (data sync)
 // @category       Misc
-// @version        0.2.3
-// @description    [0.2.3] Allows to merge (sync) data across devices and even accounts. For now handles merging uniques (captures and visits).
+// @version        0.2.4
+// @description    [0.2.4] Allows to merge (sync) data across devices and even accounts. For now handles merging uniques (captures and visits).
 // @include        https://intel.ingress.com/*
 // @include        https://*.ingress.com/intel*
 // @include        http://*.ingress.com/intel*
@@ -335,12 +335,22 @@ appendMerger(uniquesMerger);
 
 /**
  * CSS.
+ * 
+ * Note `white-space: pre;` is used for textarea for performance reasons.
+ * It seems that wrapping long text is can be significantly long (which you can test when you try to resize textarea).
  */
 let pluginCss = `
+.ui-data-merger-dialog p:first-child {
+	margin-top:0;
+}
+.ui-data-merger-dialog p:last-child {
+	margin-bottom:0;
+}
 .ui-data-merger-dialog textarea {
 	width: 100%;
 	height: 10em;
 	box-sizing: border-box;
+	white-space: pre;
 }
 .ui-data-merger-dialog .ui-dialog-buttonset button {
 	margin-left: 1em;
