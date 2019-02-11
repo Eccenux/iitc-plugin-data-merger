@@ -3,8 +3,8 @@
 // @namespace      https://github.com/jonatkins/ingress-intel-total-conversion
 // @name           IITC plugin: Uniques merger (data sync)
 // @category       Misc
-// @version        0.2.2
-// @description    [0.2.2] Allows to merge (sync) data across devices and even accounts. For now handles merging uniques (captures and visits).
+// @version        0.2.3
+// @description    [0.2.3] Allows to merge (sync) data across devices and even accounts. For now handles merging uniques (captures and visits).
 // @include        https://intel.ingress.com/*
 // @include        https://*.ingress.com/intel*
 // @include        http://*.ingress.com/intel*
@@ -218,7 +218,7 @@ let uniquesMerger = {
 
 		// save with confirmation
 		const me = this;
-		let box = dialog({
+		let $box = dialog({
 			dialogClass: 'ui-data-merger-dialog',
 			title: 'Confirm uniques overwrite',
 			html: html,
@@ -232,7 +232,7 @@ let uniquesMerger = {
 				},
 			}
 		});
-		removeOkButton(box);
+		removeOkButton($box);
 	},
 
 	/**
@@ -294,7 +294,7 @@ let uniquesMerger = {
 
 		// save with confirmation
 		const me = this;
-		let box = dialog({
+		let $box = dialog({
 			dialogClass: 'ui-data-merger-dialog',
 			title: 'Confirm uniques import',
 			html: `
@@ -311,7 +311,7 @@ let uniquesMerger = {
 				},
 			}
 		});
-		removeOkButton(box);
+		removeOkButton($box);
 	},
 	importSave : function(finalData) {
 		// auto-backup
@@ -341,7 +341,6 @@ let pluginCss = `
 	width: 100%;
 	height: 10em;
 	box-sizing: border-box;
-	margin: 1em 0;
 }
 .ui-data-merger-dialog .ui-dialog-buttonset button {
 	margin-left: 1em;
@@ -438,22 +437,33 @@ function importData(exportString, forcedReplace, onFinished) {
 }
 
 /**
+ * Optimal width for dialog with large input area.
+ * 
+ * Should work fine on mobile too.
+ */
+function getFormDialogWidth() {
+	let viewportWidth = $(window).width();
+	let maxWidth = 0.95 * viewportWidth;
+	return '' + (600 < maxWidth ? 600 : maxWidth) + 'px';
+}
+
+/**
  * Open export dialog.
  */
 function openExport(exportString, merger) {
 	let html = `<textarea>${exportString}</textarea>
-		<button class="save-file">Save as file</button>
+		<p><button class="save-file">Save as file</button></p>
 	`;
 	
-	let box = dialog({
+	let $box = dialog({
 		html: html,
 		id: 'plugin-data-merger-export',
 		dialogClass: 'ui-data-merger-dialog',
-		width: '50%',
+		width: getFormDialogWidth(),
 		title: merger.exportLabel
 	});
 
-	$('.save-file', box).click(()=>{
+	$('.save-file', $box).click(()=>{
 		saveAsFile($('textarea').text(), `${merger.key}.json.txt`);
 	});
 }
@@ -499,11 +509,11 @@ function loadTextFile(fileInput, output) {
 
 /**
  * 
- * @param {jQuery} box IITC dialog box (returned by dialog function).
+ * @param {jQuery} $box IITC dialog box (returned by dialog function).
  */
-function removeOkButton(box) {
-	// note `box` is actually content of the dialog, not the whole dialog
-	$('.ui-dialog-buttonset button', box.parent()).each(function() {
+function removeOkButton($box) {
+	// note `$box` is actually content of the dialog, not the whole dialog
+	$('.ui-dialog-buttonset button', $box.parent()).each(function() {
 		if (this.textContent === 'OK') {
 			this.style.display = 'none';
 		}
@@ -515,16 +525,16 @@ function removeOkButton(box) {
  */
 function openImport() {
 	let html = `
-		<input type="file" class="fileInput">
+		<p><input type="file" class="fileInput"></p>
 		<textarea></textarea>
-		<label><input type="checkbox" class="forced-replace"> Forced replace of data (e.g. to restore backup)</label>
+		<p><label><input type="checkbox" class="forced-replace"> Forced replace of data (e.g. to restore backup)</label></p>
 	`;
 	
-	let box = dialog({
+	let $box = dialog({
 		html: html,
 		id: 'plugin-data-merger-import',
 		dialogClass: 'ui-data-merger-dialog',
-		width: '50%',
+		width: getFormDialogWidth(),
 		title: 'Import (merge)',
 		buttons: {
 			'Merge' : function() {
@@ -544,11 +554,11 @@ function openImport() {
 			},
 		}
 	});
-	removeOkButton(box);
-	//LOG(box);
+	removeOkButton($box);
+	//LOG($box);
 
-	const output = $('textarea', box)[0];
-	$('.fileInput', box).change(function(){
+	const output = $('textarea', $box)[0];
+	$('.fileInput', $box).change(function(){
 		loadTextFile(this, output);
 	});
 }
@@ -612,7 +622,7 @@ function confirmImport(merger, onOk) {
 	}
 
 	// show dialog
-	let box = dialog({
+	let $box = dialog({
 		html: `<strong>Warning!</strong> This import:
 				<ul>${messages}</ul>
 				<p>Are you sure wish to import? 
@@ -640,17 +650,17 @@ function confirmImport(merger, onOk) {
 function openOptions() {
 	let html = buildMenu();
 
-	let box = dialog({
+	let $box = dialog({
 		html: html,
 		id: 'plugin-data-merger-options',
 		dialogClass: 'ui-data-merger-dialog',
 		title: `Merge menu (v. ${myVersion})`
 	});
 
-	$('.import', box).click(()=>{
+	$('.import', $box).click(()=>{
 		openImport();
 	});
-	$('.export', box).click(function(){
+	$('.export', $box).click(function(){
 		LOG('export-click');
 		if (!this.classList.contains('running')) {
 			LOG('run (not running)');
