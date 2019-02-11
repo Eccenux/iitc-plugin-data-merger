@@ -201,22 +201,23 @@ let uniquesMerger = {
 	 * Forced replace with confirmation.
 	 * @param {*} mergerData 
 	 */
-	forcedReplaceConfirm : function(mergerData) {
+	forcedReplaceConfirm : function(mergerData, current) {
 		LOG('uniques forcedReplaceConfirm');
 
 		// build html
-		let current = Object.keys(current).length;
-		let diff = Object.keys(mergerData).length - current;
+		let currentCount = Object.keys(current).length;
+		let diff = Object.keys(mergerData).length - currentCount;
 		let html = '';
 		if (diff < 0) {
 			diff = Math.abs(diff);
-			html = `<strong>Warning!</strong> You are about to remove ${diff} portals from your list (you had ${current} portals captured or visited).`
+			html = `<strong>Warning!</strong> You are about to remove ${diff} portals from your list (you had ${currentCount} portals captured or visited).`
 		} else {
-			html = `<strong>Note!</strong> You will overwrite your current data. You should only do that when restore a backup.`
+			html = `<strong>Note!</strong> You will overwrite your current data. You should only do that when you restore a backup.`
 		}
 		html += `<p>Are you sure you want to continue?`
 
 		// save with confirmation
+		const me = this;
 		let box = dialog({
 			dialogClass: 'ui-data-merger-dialog',
 			title: 'Confirm uniques overwrite',
