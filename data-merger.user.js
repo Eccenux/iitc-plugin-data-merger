@@ -3,8 +3,8 @@
 // @namespace      https://github.com/jonatkins/ingress-intel-total-conversion
 // @name           IITC plugin: Uniques merger (data sync)
 // @category       Misc
-// @version        0.2.0
-// @description    [0.2.0] Allows to merge (sync) data across devices and even accounts. For now handles merging uniques (captures and visits).
+// @version        0.2.1
+// @description    [0.2.1] Allows to merge (sync) data across devices and even accounts. For now handles merging uniques (captures and visits).
 // @include        https://intel.ingress.com/*
 // @include        https://*.ingress.com/intel*
 // @include        http://*.ingress.com/intel*
@@ -440,7 +440,9 @@ function importData(exportString, forcedReplace, onFinished) {
  * Open export dialog.
  */
 function openExport(exportString, merger) {
-	let html = `<textarea>${exportString}</textarea>`;
+	let html = `<textarea>${exportString}</textarea>
+		<button class="save-file">Save as file</button>
+	`;
 	
 	let box = dialog({
 		html: html,
@@ -450,11 +452,34 @@ function openExport(exportString, merger) {
 		title: merger.exportLabel
 	});
 
-	/*
-	$('.export-file', box).click(()=>{
-		alert('Not implemented yet.');
+	$('.save-file', box).click(()=>{
+		saveAsFile($('textarea').text(), `${merger.key}.json.txt`);
 	});
-	*/
+}
+
+/**
+ * Save text as file.
+ * @param {string} text File contents.
+ * @param {string} fileName File name.
+ */
+function saveAsFile(text, fileName) {
+	// create data URL
+	var textBlob = new Blob([text], {
+			type: "application/octet-stream"
+		});
+	var textURL = window.URL.createObjectURL(textBlob);
+	// create auto-click link
+	const parent = document.body;
+	var link = document.createElement("a");
+	link.download = fileName;
+	link.innerHTML = "Download";
+	link.href = textURL;
+	link.onclick = function (e) {
+		parent.removeChild(e.target);
+	};
+	link.style.display = "none";
+	parent.appendChild(link);
+	link.click();
 }
 
 /**
