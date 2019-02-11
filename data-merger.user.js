@@ -3,8 +3,8 @@
 // @namespace      https://github.com/jonatkins/ingress-intel-total-conversion
 // @name           IITC plugin: Uniques merger (data sync)
 // @category       Misc
-// @version        0.1.6
-// @description    [0.1.6] Allows to merge (sync) data across devices and even accounts. For now handles merging uniques (captures and visits).
+// @version        0.1.7
+// @description    [0.1.7] Allows to merge (sync) data across devices and even accounts. For now handles merging uniques (captures and visits).
 // @include        https://intel.ingress.com/*
 // @include        https://*.ingress.com/intel*
 // @include        http://*.ingress.com/intel*
@@ -44,10 +44,28 @@ function LOGwarn() {
 }
 
 /**
+ * Extend a with b.
+ * 
+ * Note! Shouldn't use `Object.assign` as it might not work in Android webview :-/
+ * 
+ * @param {object} a 
+ * @param {object} b 
+ */
+function simpleExtend(a, b){
+    for(var key in b)
+        if(b.hasOwnProperty(key))
+            a[key] = b[key];
+    return a;
+}
+
+/**
  * Merger class
  */
 class Merger {
 	constructor (merger) {
+		// should add everthing from merger
+		simpleExtend(this, merger);
+
 		/**
 		 * @type {string}
 		 */
@@ -176,20 +194,66 @@ let uniquesMerger = {
 	// will merge with conflict resolution
 	replacesData : false,
 
+	// forced replacing
+	forcedReplaceSupport : true,
+
+	/**
+	 * Forced replace with confirmation.
+	 * @param {*} mergerData 
+	 */
+	forcedReplaceConfirm : function(mergerData) {
+		LOG('uniques forcedReplaceConfirm');
+
+		// build html
+		let current = Object.keys(current).length;
+		let diff = Object.keys(mergerData).length - current;
+		let html = '';
+		if (diff < 0) {
+			diff = Math.abs(diff);
+			html = `<strong>Warning!</strong> You are about to remove ${diff} portals from your list (you had ${current} portals captured or visited).`
+		} else {
+			html = `<strong>Note!</strong> You will overwrite your current data. You should only do that when restore a backup.`
+		}
+		html += `<p>Are you sure you want to continue?`
+
+		// save with confirmation
+		let box = dialog({
+			dialogClass: 'ui-data-merger-dialog',
+			title: 'Confirm uniques overwrite',
+			html: html,
+			buttons: {
+				'Save & reload' : function() {
+					me.importSave(mergerData);
+				},
+				'Cancel' : function() {
+					LOG('import Cancel');
+					$(this).dialog('close');
+				},
+			}
+		});
+		removeOkButton(box);
+	},
+
 	/**
 	 * Imports data as was returned by the exporter.
 	 * 
 	 * Note, can return string when an import error occures.
 	 * 
 	 * @param {object} mergerData 
+	 * @param {boolean} forcedReplace If true then data will be replaced, not merged.
 	 */
-	'import' : function(mergerData) {
+	'import' : function(mergerData, forcedReplace) {
 		if (typeof mergerData !== 'object') {
 			LOGwarn('mergerData is not a proper object, used old export?');
 			return 'invalid';
 		}
 
 		const current = JSON.parse(localStorage['plugin-uniques-data']);
+
+		if (forcedReplace) {
+			this.forcedReplaceConfirm(mergerData, current);
+			return;
+		}
 
 		// Note! This assumes you will never want to un-capture something
 		function computeState(newItem, currentItem) {
@@ -228,23 +292,17 @@ let uniquesMerger = {
 		$.extend(current, mergerData);
 
 		// save with confirmation
+		const me = this;
 		let box = dialog({
 			dialogClass: 'ui-data-merger-dialog',
-			title: 'Uniques import successful',
+			title: 'Confirm uniques import',
 			html: `
 				<p>Portals to add: ${counters.added}.
 				<p>Portals to modify: ${counters.modified}.
 			`,
 			buttons: {
 				'Save & reload' : function() {
-					// auto-backup
-					localStorage['plugin-uniques-data-auto-backup'] = localStorage['plugin-uniques-data'];
-					// save
-					var dataString = JSON.stringify(current)
-					localStorage['plugin-uniques-data'] = dataString; // this replaces data
-					window.plugin.uniques.loadLocal('plugin-uniques-data'); // this loads data to internal objects
-					// reload
-					location.reload();	// this reloads the page (to e.g. update highlights)
+					me.importSave(current);
 				},
 				'Cancel' : function() {
 					LOG('import Cancel');
@@ -253,6 +311,16 @@ let uniquesMerger = {
 			}
 		});
 		removeOkButton(box);
+	},
+	importSave : function(finalData) {
+		// auto-backup
+		localStorage['plugin-uniques-data-auto-backup'] = localStorage['plugin-uniques-data'];
+		// save
+		var dataString = JSON.stringify(finalData)
+		localStorage['plugin-uniques-data'] = dataString; // this replaces data
+		window.plugin.uniques.loadLocal('plugin-uniques-data'); // this loads data to internal objects
+		// reload
+		location.reload();	// this reloads the page (to e.g. update highlights)
 	},
 	/**
 	 * Returns data that can be imported.
@@ -336,7 +404,7 @@ function exportData(mergerKey) {
  * @param {string} exportString Exported data (must contain data from `exportData`).
  * @returns {(string|boolean)} String upon immediate error or true when merger was found.
  */
-function importData(exportString, onFinished) {
+function importData(exportString, forcedReplace, onFinished) {
 	// parse and validate
 	let data = {};
 	try {
@@ -357,7 +425,7 @@ function importData(exportString, onFinished) {
 
 	let merger = mergers[mergerKey];
 	confirmImport(merger, ()=>{
-		const result = merger.import(mergerData);
+		const result = merger.import(mergerData, forcedReplace);
 		showImportMessages(result, merger);
 		if (typeof onFinished === 'function') {
 			onFinished(result, merger);
@@ -405,7 +473,10 @@ function removeOkButton(box) {
  * Open import dialog.
  */
 function openImport() {
-	let html = `<textarea></textarea>`;
+	let html = `
+		<textarea></textarea>
+		<label><input type="checkbox" class="forced-replace"> Forced replace of data (e.g. to restore backup)</label>
+	`;
 	
 	let box = dialog({
 		html: html,
@@ -421,7 +492,8 @@ function openImport() {
 					alert('Data is empty');
 					return;
 				}
-				const result = importData(textarea.value);
+				const forcedReplace = this.querySelector('.forced-replace');
+				const result = importData(textarea.value, forcedReplace.checked);
 				showImportMessages(result);
 			},
 			'Cancel' : function() {
@@ -434,6 +506,10 @@ function openImport() {
 	//LOG(box);
 }
 
+/**
+ * Show import messages (render errors).
+ * @param {string} result 
+ */
 function showImportMessages(result) {
 	if (typeof result === 'string') {
 		switch (result) {
